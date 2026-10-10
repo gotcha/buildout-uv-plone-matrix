@@ -43,9 +43,11 @@ there is an escape hatch and a source-checkout mode:
   series→Python mapping still applies; pass a fourth arg to override.
 - A buildout argument of `installed` selects Mode B: skip the
   `uvx --from zc.buildout==...` pin and use the ambient interpreter's
-  buildout (a source checkout under test). Mode B drops both the
-  `versions:zc.buildout=` pin (a dev checkout has no PyPI version) and
-  the `versions:setuptools=81.0.0` pin (the point of the
+  buildout (a source checkout under test). Mode B overrides
+  `versions:zc.buildout=` with the ambient dev version — Plone's
+  versions.cfg pins a release, and without the override the
+  self-upgrade check would fetch it and stop testing the checkout —
+  and drops the `versions:setuptools=81.0.0` pin (the point of the
   uv-dep-removal branch is zero setuptools on the installer=uv path).
 
 Concrete example — zc.buildout's CI cell for Plone 6.1.5:
