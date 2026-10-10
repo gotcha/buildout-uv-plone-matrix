@@ -14,5 +14,11 @@ if [ -z "$py" ]; then
   esac
 fi
 cd "$(dirname "$0")/.."
+if [ "${CELL_NO_DEVENV:-}" = "1" ]; then
+  # CI/container entry: skip the devenv re-entry; the caller provides
+  # python, uv and (Mode B) buildout on PATH. The series->Python mapping
+  # above still applies.
+  exec bash tools/cell-inner.sh "$mode" "$plone" "$buildout" "$py"
+fi
 exec devenv shell --option languages.python.version:string "$py" -- \
   bash tools/cell-inner.sh "$mode" "$plone" "$buildout" "$py"

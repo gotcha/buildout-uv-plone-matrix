@@ -32,6 +32,33 @@ spirit as buildout's `versions:x=y` CLI args. The mapping lives in
 
 Interpreters come from the devenv (nixpkgs-python input), never from uv.
 
+## CI / container entrypoint (Mode B)
+
+`just check` re-enters the devenv for the interpreter, which a container
+does not have. For CI — the zc.buildout repo's `plone-matrix` dagger job —
+there is an escape hatch and a source-checkout mode:
+
+- `CELL_NO_DEVENV=1` makes `tools/cell.sh` skip the devenv re-entry: the
+  caller puts `python`, `uv` (and, for Mode B, `buildout`) on PATH. The
+  series→Python mapping still applies; pass a fourth arg to override.
+- A buildout argument of `installed` selects Mode B: skip the
+  `uvx --from zc.buildout==...` pin and use the ambient interpreter's
+  buildout (a source checkout under test). Mode B drops both the
+  `versions:zc.buildout=` pin (a dev checkout has no PyPI version) and
+  the `versions:setuptools=81.0.0` pin (the point of the
+  uv-dep-removal branch is zero setuptools on the installer=uv path).
+
+Concrete example — zc.buildout's CI cell for Plone 6.1.5:
+
+```sh
+# inside a python:3.12 container with uv and lsof available:
+uv pip install --system /src          # the zc.buildout branch checkout
+CELL_NO_DEVENV=1 bash tools/cell.sh check 6.1.5 installed
+# -> OK 6.1.5 (zc.buildout 5.3.0a3.dev0, Python 3.12): HTTP 200 after ~NNs
+```
+
+`just check-ci <plone> [python]` wraps exactly this call.
+
 ## Status matrix
 
 zc.buildout 5.3.0a2, macOS arm64. Every green cell ran from scratch

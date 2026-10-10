@@ -15,6 +15,13 @@ build plone_version buildout_version=default_buildout python_version="":
 check plone_version buildout_version=default_buildout python_version="":
 	bash tools/cell.sh check {{ plone_version }} {{ buildout_version }} "{{ python_version }}"
 
+# CI/container entry (Mode B): skip devenv; the ambient interpreter's
+# buildout (a source checkout) is under test and no setuptools pin is
+# applied. Requires python, uv and buildout on PATH — see README's CI
+# section for the full container recipe.
+check-ci plone_version python_version="":
+	CELL_NO_DEVENV=1 bash tools/cell.sh check {{ plone_version }} installed "{{ python_version }}"
+
 # Free :8080 when a foreground instance was killed ungracefully
 kill:
 	kill -9 $(lsof -ti :8080) 2>/dev/null || true
